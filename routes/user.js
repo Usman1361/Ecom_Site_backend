@@ -264,3 +264,42 @@ userRoute.post("/reset-password", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+userRoute.get("/users", (req, res) => {
+  const query = "SELECT * FROM Users";
+
+  dbConnection.query(query, (error, results) => {
+    if (error) {
+      console.error("Error fetching data:", error);
+      return res
+        .status(500)
+        .json({ error: "An error occurred while fetching data." });
+    }
+
+    return res.status(200).json({ data: results });
+  });
+});
+userRoute.put("/users/:id", (req, res) => {
+  const id = req.params.id;
+  const { name, email } = req.body;
+
+  if (!name || !email) {
+    return res.status(400).json({ error: "Name and email are required." });
+  }
+
+  const query = "UPDATE Users SET name = ?, email = ? WHERE id = ?";
+
+  dbConnection.query(query, [name, email, id], (error, results) => {
+    if (error) {
+      console.error("Error updating user:", error);
+      return res
+        .status(500)
+        .json({ error: "An error occurred while updating User." });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    return res.status(200).json({ message: "User updated successfully." });
+  });
+});
